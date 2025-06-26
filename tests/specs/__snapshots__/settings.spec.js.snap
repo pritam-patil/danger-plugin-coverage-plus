@@ -1,0 +1,39 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Settings limits the number of rows 1`] = `
+"## Coverage Report
+
+> :+1: Test coverage is looking good.
+
+|Impacted Files|% Stmts|% Branch|% Funcs|% Lines|Uncovered Lines||
+|---|:-:|:-:|:-:|:-:|:-:|:-:|
+|0|100|100|100|100||:white_check_mark:|
+|1|100|100|100|100||:white_check_mark:|
+
+<details>
+<summary>
+and 8 more...
+</summary>
+
+|Impacted Files|% Stmts|% Branch|% Funcs|% Lines|Uncovered Lines||
+|---|:-:|:-:|:-:|:-:|:-:|:-:|
+|2|100|100|100|100||:white_check_mark:|
+|3|100|100|100|100||:white_check_mark:|
+|4|100|100|100|100||:white_check_mark:|
+|5|100|100|100|100||:white_check_mark:|
+|6|100|100|100|100||:white_check_mark:|
+|7|100|100|100|100||:white_check_mark:|
+|8|100|100|100|100||:white_check_mark:|
+|9|100|100|100|100||:white_check_mark:|
+</details>"
+`;
+
+exports[`Settings makes paths even shorter 1`] = `
+"## Coverage Report
+
+> :+1: Test coverage is looking good.
+
+|Impacted Files|% Stmts|% Branch|% Funcs|% Lines|Uncovered Lines||
+|---|:-:|:-:|:-:|:-:|:-:|:-:|
+|../kl/mn|100|100|100|100||:white_check_mark:|"
+`;

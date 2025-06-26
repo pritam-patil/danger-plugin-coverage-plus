@@ -1,0 +1,26 @@
+{
+  "parser": "@babel/eslint-parser",
+  "extends": [
+    "airbnb-base",
+    "plugin:jest/recommended"
+  ],
+  "plugins": [
+    "jest"
+  ],
+  "env": {
+    "jest/globals": true
+  },
+  "globals": {
+    "danger": "readonly",
+    "fail": "readonly",
+    "markdown": "readonly",
+    "message": "readonly",
+    "peril": "readonly",
+    "schedule":  "readonly",
+    "warn": "readonly"
+  },
+  "rules": {
+    "import/prefer-default-export": "off",
+    "jest/no-jasmine-globals": "off"
+  }
+}
