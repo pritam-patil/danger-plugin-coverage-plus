@@ -279,6 +279,7 @@ const hasSummaryPassed = (metrics, threshold) => {
  * Build the test summary.
  */
 const buildSummary = (metrics, { successMessage, failureMessage, threshold }) => {
+  const percentages = getMetricPercentages(metrics);
   const passed = hasSummaryPassed(metrics, threshold);
 
   const thresholdSummary = [
