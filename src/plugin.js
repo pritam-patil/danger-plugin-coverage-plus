@@ -101,6 +101,12 @@ const getShortPath = (filePath, maxChars) => {
   return shortParts.reverse().join('/');
 };
 
+// replace the basePathPrefix with an empty string
+const getTrimmedPath = (filePath, basePathPrefix) => {
+  const trimmedPath = filePath.replace(basePathPrefix, '');
+  return trimmedPath;
+};
+
 /**
  * Insert whitespace into a path so that it wraps within the Markdown table.
  */
@@ -146,6 +152,8 @@ const buildRow = (file, {
   maxChars,
   maxUncovered,
   wrapFilenames,
+  basePath,
+  basePathPrefix, // replace the filePath with this prefix
 }) => {
   const fileMetrics = getFileMetrics(file);
 
@@ -155,7 +163,7 @@ const buildRow = (file, {
   const shortPath = getShortPath(longPath, maxChars);
   const readablePath = wrapFilenames ? getWrappedPath(shortPath) : shortPath;
 
-  const fileLink = `../blob/${sha}/${longPath}`;
+  const fileLink = basePath ? `${basePath}/${getTrimmedPath(longPath, basePathPrefix)}` : `../blob/${sha}/${longPath}`;
   const fileCell = sha ? `[${readablePath}](${fileLink})` : readablePath;
 
   const percentages = getMetricPercentages(fileMetrics);

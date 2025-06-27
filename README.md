@@ -87,6 +87,8 @@ The function accepts a settings object with the following properties:
 | `threshold`          | The thresholds at which to show the failure messaging.                                       |
 | `warnOnNoReport`     | Show a warning if no coverage report was detected.                                           |
 | `onFailure`          | Custom handler for failures.                                           |
+| `basePath`           | Base URL path to use for file links instead of GitHub blob links.                            |
+| `basePathPrefix`     | Prefix to remove from file paths when generating links.                                      |
 
 **Example (defaults shown):**
 
@@ -110,12 +112,8 @@ schedule(coverage({
     functions: 80,
     lines: 80,
   },
-  onFailure: function log() { markdown("Failure") }
+  onFailure: function log() { markdown("Failure") },
+  basePath: 'https://coverage.example.com', // Coverage report is hosted here
+  basePathPrefix: 'src/js', // Remove this prefix from file paths when generating coverage report links
 }));
 ```
-
-
-TODO:
-- custom function on failure
-- links instead of file paths
-- custom table with values
