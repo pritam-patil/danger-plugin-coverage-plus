@@ -119,3 +119,4 @@ TODO:
 - custom function on failure
 - links instead of file paths
 - custom table with values
+- note on table
