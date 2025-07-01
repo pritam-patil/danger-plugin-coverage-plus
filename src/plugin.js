@@ -101,9 +101,9 @@ const getShortPath = (filePath, maxChars) => {
   return shortParts.reverse().join('/');
 };
 
-// replace the basePathPrefix with an empty string
-const getTrimmedPath = (filePath, basePathPrefix) => {
-  const trimmedPath = filePath.replace(basePathPrefix, '');
+// replace the replaceFilePrefix with an empty string
+const getTrimmedPath = (filePath, replaceFilePrefix) => {
+  const trimmedPath = filePath.replace(replaceFilePrefix, '');
   return trimmedPath;
 };
 
@@ -152,8 +152,9 @@ const buildRow = (file, {
   maxChars,
   maxUncovered,
   wrapFilenames,
-  basePath,
-  basePathPrefix, // replace the filePath with this prefix
+  altFileUrl,
+  altFileUrlSuffix, // add this suffix to the file path
+  replaceFilePrefix, // replace the filePath with this prefix
 }) => {
   const fileMetrics = getFileMetrics(file);
 
@@ -163,7 +164,7 @@ const buildRow = (file, {
   const shortPath = getShortPath(longPath, maxChars);
   const readablePath = wrapFilenames ? getWrappedPath(shortPath) : shortPath;
 
-  const fileLink = basePath ? `${basePath}/${getTrimmedPath(longPath, basePathPrefix)}` : `../blob/${sha}/${longPath}`;
+  const fileLink = altFileUrl ? `${altFileUrl}/${getTrimmedPath(longPath, replaceFilePrefix)}${altFileUrlSuffix}` : `../blob/${sha}/${longPath}`;
   const fileCell = sha ? `[${readablePath}](${fileLink})` : readablePath;
 
   const percentages = getMetricPercentages(fileMetrics);
@@ -351,6 +352,8 @@ const getRelevantFiles = (coverageXml, { showAllFiles }) => {
  */
 export const coverage = async (initialOpts = {}) => {
   const opts = {
+    title: 'Coverage Report',
+    note: null,
     successMessage: ':+1: Test coverage is looking good.',
     failureMessage: 'Test coverage is looking a little low for the files created '
       + 'or modified in this PR, perhaps we need to improve this.',
@@ -390,7 +393,8 @@ export const coverage = async (initialOpts = {}) => {
   const table = buildTable(relevantFiles, opts);
   const summary = buildSummary(combinedMetrics, opts);
   const report = [
-    '## Coverage Report',
+    `## ${opts.title}`,
+    opts.note ? `> ${opts.note}` : '',
     summary,
     table,
   ].join(newLine + newLine);

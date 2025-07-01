@@ -77,6 +77,8 @@ The function accepts a settings object with the following properties:
 
 | name                 | description                                                                                  |
 |----------------------|----------------------------------------------------------------------------------------------|
+| `title`             | Custom title for the coverage report (defaults to "Coverage Report").                         |
+| `note`              | Optional note to display below the title.                                                     |
 | `successMessage`     | A custom message to show when coverage is above the threshold.                               |
 | `failureMessage`     | A custom message to show when coverage is below the threshold.                               |
 | `cloverReportPath`   | Override automatic coverage report detection to provide the relative path to a report.       |
@@ -87,8 +89,9 @@ The function accepts a settings object with the following properties:
 | `threshold`          | The thresholds at which to show the failure messaging.                                       |
 | `warnOnNoReport`     | Show a warning if no coverage report was detected.                                           |
 | `onFailure`          | Custom handler for failures.                                           |
-| `basePath`           | Base URL path to use for file links instead of GitHub blob links.                            |
-| `basePathPrefix`     | Prefix to remove from file paths when generating links.                                      |
+| `altFileUrl`           | Base URL path to use for file links instead of GitHub blob links.                            |
+| `altFileUrlSuffix`     | Suffix to append to file paths when generating links.                                        |
+| `replaceFilePrefix`     | Prefix to remove from file paths when generating links.                                      |
 
 **Example (defaults shown):**
 
@@ -96,6 +99,8 @@ The function accepts a settings object with the following properties:
 import coverage from 'danger-plugin-coverage-plus';
 
 schedule(coverage({
+  title: "Custom Coverage Report",
+  note: "View content by clicking on file names"
   successMessage: ':+1: Test coverage is looking good.',
   failureMessage: 'Test coverage is looking a little low for the files created '
     + 'or modified in this PR, perhaps we need to improve this.',
@@ -113,7 +118,8 @@ schedule(coverage({
     lines: 80,
   },
   onFailure: function log() { markdown("Failure") },
-  basePath: 'https://coverage.example.com', // Coverage report is hosted here
-  basePathPrefix: 'src/js', // Remove this prefix from file paths when generating coverage report links
+  altFileUrl: 'https://coverage.example.com', // Coverage report is hosted here
+  altFileUrlSuffix: ".html",
+  replaceFilePrefix: 'src/js', // Remove this prefix from file paths when generating coverage report links
 }));
 ```
