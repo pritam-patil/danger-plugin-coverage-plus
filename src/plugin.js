@@ -353,6 +353,7 @@ const getRelevantFiles = (coverageXml, { showAllFiles }) => {
 export const coverage = async (initialOpts = {}) => {
   const opts = {
     title: 'Coverage Report',
+    note: null,
     successMessage: ':+1: Test coverage is looking good.',
     failureMessage: 'Test coverage is looking a little low for the files created '
       + 'or modified in this PR, perhaps we need to improve this.',
@@ -393,6 +394,7 @@ export const coverage = async (initialOpts = {}) => {
   const summary = buildSummary(combinedMetrics, opts);
   const report = [
     `## ${opts.title}`,
+    opts.note ? `> ${opts.note}` : '',
     summary,
     table,
   ].join(newLine + newLine);
