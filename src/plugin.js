@@ -104,7 +104,6 @@ const getShortPath = (filePath, maxChars) => {
 // replace the replaceFilePrefix with an empty string
 const getTrimmedPath = (filePath, replaceFilePrefix) => {
   const trimmedPath = filePath.replace(replaceFilePrefix, '');
-  // support for suffix in file path
   return trimmedPath;
 };
 
@@ -154,6 +153,7 @@ const buildRow = (file, {
   maxUncovered,
   wrapFilenames,
   altFileUrl,
+  altFileUrlSuffix, // add this suffix to the file path
   replaceFilePrefix, // replace the filePath with this prefix
 }) => {
   const fileMetrics = getFileMetrics(file);
@@ -164,7 +164,7 @@ const buildRow = (file, {
   const shortPath = getShortPath(longPath, maxChars);
   const readablePath = wrapFilenames ? getWrappedPath(shortPath) : shortPath;
 
-  const fileLink = altFileUrl ? `${altFileUrl}/${getTrimmedPath(longPath, replaceFilePrefix)}` : `../blob/${sha}/${longPath}`;
+  const fileLink = altFileUrl ? `${altFileUrl}/${getTrimmedPath(longPath, replaceFilePrefix)}${altFileUrlSuffix}` : `../blob/${sha}/${longPath}`;
   const fileCell = sha ? `[${readablePath}](${fileLink})` : readablePath;
 
   const percentages = getMetricPercentages(fileMetrics);
