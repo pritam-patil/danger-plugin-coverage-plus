@@ -78,6 +78,7 @@ The function accepts a settings object with the following properties:
 | name                 | description                                                                                  |
 |----------------------|----------------------------------------------------------------------------------------------|
 | `title`             | Custom title for the coverage report (defaults to "Coverage Report").                         |
+| `note`              | Optional note to display below the title.                                                     |
 | `successMessage`     | A custom message to show when coverage is above the threshold.                               |
 | `failureMessage`     | A custom message to show when coverage is below the threshold.                               |
 | `cloverReportPath`   | Override automatic coverage report detection to provide the relative path to a report.       |
@@ -99,6 +100,7 @@ import coverage from 'danger-plugin-coverage-plus';
 
 schedule(coverage({
   title: "Custom Coverage Report",
+  note: "View content by clicking on file names"
   successMessage: ':+1: Test coverage is looking good.',
   failureMessage: 'Test coverage is looking a little low for the files created '
     + 'or modified in this PR, perhaps we need to improve this.',
