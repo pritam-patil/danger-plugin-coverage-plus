@@ -3,7 +3,7 @@ import path from "path";
 import { getCoverageReport } from "./report";
 
 const newLine = "\n";
-
+console.log("Test 1253");
 /**
  * Get flatened file details.
  */
@@ -134,6 +134,11 @@ const getMetricPercentages = (jestMetrics) => {
     lines: getCoveredPercentage(coveredlines, lines),
     // Include raw metrics for debugging
     _sonarMetrics: sonarMetrics,
+    _plainMetrics: {
+      statements,
+      lines,
+      branches: conditionals,
+    },
   };
 };
 
@@ -287,14 +292,35 @@ const buildRow = (
     "",
     fileCell,
     noLines ? "-" : percentages.coverage,
+    noLines ? "-" : percentages._sonarMetrics.CT,
+    noLines ? "-" : percentages._sonarMetrics.B,
+    noLines ? "-" : percentages._sonarMetrics.LC,
+    noLines ? "-" : percentages._sonarMetrics.EL,
+    noLines ? "-" : percentages._sonarMetrics.coverage_pct, // weighted 80/20 formula
+    noLines ? "-" : percentages._sonarMetrics.original_coverage_pct, // (CT + LC) / (B + EL)
     noLines ? "-" : percentages.statements,
+    noLines ? "-" : percentages._plainMetrics.statements,
     noLines ? "-" : percentages.branches,
+    noLines ? "-" : percentages._plainMetrics.branches,
     noLines ? "-" : percentages.functions,
     noLines ? "-" : percentages.lines,
-    uncoveredCell,
-    emoji,
-    "",
+    noLines ? "-" : percentages._plainMetrics.lines,
   ];
+
+  // Add debug columns if debug mode is enabled
+  if (debugSonar && !noLines) {
+    const sonarMetrics = percentages._sonarMetrics;
+
+    // Add original vs. weighted SonarQube formula results
+    rowCells.push(sonarMetrics.original_coverage_pct); // Old SonarQube formula
+
+    // Add formula components
+    rowCells.push(`${sonarMetrics.CT}/${sonarMetrics.B}`); // CT/B
+    rowCells.push(`${sonarMetrics.LC}/${sonarMetrics.EL}`); // LC/EL
+  }
+
+  // Add uncovered lines and emoji
+  rowCells.push(uncoveredCell, emoji, "");
 
   return rowCells.join("|");
 };
@@ -313,14 +339,34 @@ const buildTable = (files, opts) => {
   // Define headings
   let headings = [
     `${showAllFiles ? "" : "Impacted "}Files`,
-    "% Sonar",
+    "% Sonar", // coverage_pct
+    "% Sonar CT",
+    "% Sonar B",
+    "% Sonar LC",
+    "% Sonar EL",
+    "% Sonar PCT", // weighted 80/20 formula
+    "% Sonar Original PCT", // (CT + LC) / (B + EL)
     "% Stmts",
+    "Num Stmts",
     "% Branch",
+    "Num Branch",
     "% Funcs",
     "% Lines",
-    "Uncovered Lines",
-    "",
+    "Num Lines",
   ];
+
+  // Add debug headings if debug mode is enabled
+  if (debugSonar) {
+    headings = [
+      ...headings,
+      "% Old Sonar",
+      "CT/B", // Conditions True/Total
+      "LC/EL", // Lines Covered/Executable
+    ];
+  }
+
+  // Add remaining headings
+  headings = [...headings, "Uncovered Lines", ""];
 
   const headingRow = joinRow(headings);
   const seperator = joinRow(
@@ -340,79 +386,6 @@ const buildTable = (files, opts) => {
 
   let table = [headingRow, seperator, ...mainFileRows].join(newLine);
 
-  // Add debug info for each file if enabled
-  if (debugSonar) {
-    table +=
-      newLine +
-      newLine +
-      "### SonarQube Coverage Calculation Details" +
-      newLine;
-
-    files.slice(0, maxRows).forEach((file, index) => {
-      const fileMetrics = getFileMetrics(file);
-      const percentages = getMetricPercentages(fileMetrics);
-      const sonarMetrics = percentages._sonarMetrics;
-      const filePath = path.relative(process.cwd(), file.$.path);
-
-      // Only add debug for files with coverage data
-      if (fileMetrics.lines) {
-        table += newLine + `<details>` + newLine;
-        table += `<summary>${filePath}</summary>` + newLine + newLine;
-
-        // Add raw metrics
-        table += "```" + newLine;
-        table += `Raw Metrics:` + newLine;
-        table +=
-          `- Lines: ${fileMetrics.lines}, Covered Lines: ${fileMetrics.coveredlines}` +
-          newLine;
-        table +=
-          `- Conditions: ${
-            fileMetrics.conditionals || 0
-          }, Covered Conditions: ${fileMetrics.coveredconditionals || 0}` +
-          newLine;
-        table +=
-          `- Methods: ${fileMetrics.methods || 0}, Covered Methods: ${
-            fileMetrics.coveredmethods || 0
-          }` + newLine;
-        table +=
-          `- Statements: ${fileMetrics.statements || 0}, Covered Statements: ${
-            fileMetrics.coveredstatements || 0
-          }` + newLine;
-
-        // Add SonarQube formula components
-        table += newLine + `SonarQube Formula Components:` + newLine;
-        table += `- CT (Covered Conditions): ${sonarMetrics.CT}` + newLine;
-        table += `- B (Total Conditions): ${sonarMetrics.B}` + newLine;
-        table += `- LC (Covered Lines): ${sonarMetrics.LC}` + newLine;
-        table += `- EL (Executable Lines): ${sonarMetrics.EL}` + newLine;
-
-        // Add calculated coverages
-        table += newLine + `Calculated Coverages:` + newLine;
-        table += `- Line Coverage: ${sonarMetrics.line_coverage_pct}` + newLine;
-        table +=
-          `- Branch Coverage: ${sonarMetrics.branch_coverage_pct}` + newLine;
-        table +=
-          `- Original SonarQube Formula (CT+LC)/(B+EL): ${sonarMetrics.original_coverage_pct}` +
-          newLine;
-        table +=
-          `- Weighted Formula (0.8*Line + 0.2*Branch): ${sonarMetrics.coverage_pct}` +
-          newLine;
-
-        // Show the formula calculation
-        table += newLine + `Detailed Calculation:` + newLine;
-        table +=
-          `- Original Formula: (${sonarMetrics.CT} + ${sonarMetrics.LC}) / (${sonarMetrics.B} + ${sonarMetrics.EL}) = ${sonarMetrics.original_coverage_raw}` +
-          newLine;
-        table +=
-          `- Weighted Formula: (${sonarMetrics.line_coverage} * 0.8) + (${sonarMetrics.branch_coverage} * 0.2) = ${sonarMetrics.coverage_raw}` +
-          newLine;
-        table += "```" + newLine;
-
-        table += "</details>" + newLine;
-      }
-    });
-  }
-
   // Add extra files in collapsible section
   if (extraFileRows.length) {
     table += [
@@ -427,6 +400,31 @@ const buildTable = (files, opts) => {
       ...extraFileRows,
       "</details>",
     ].join(newLine);
+  }
+
+  // Add debug info summary if enabled
+  if (debugSonar) {
+    table += newLine + newLine + "### Coverage Formula Details" + newLine;
+    table += "```" + newLine;
+    table +=
+      "Sonar Coverage = Weighted Formula (80% Line + 20% Branch)" + newLine;
+    table +=
+      "  - Weighted = (Line Coverage × 0.8) + (Branch Coverage × 0.2)" +
+      newLine;
+    table +=
+      "  - Line Coverage = LC/EL (Covered Lines / Total Executable Lines)" +
+      newLine;
+    table +=
+      "  - Branch Coverage = CT/B (Conditions Covered True / Total Conditions)" +
+      newLine;
+    table += newLine;
+    table +=
+      "Old Sonar Coverage = Original Formula (CT + LC) / (B + EL)" + newLine;
+    table += "  - CT: conditions evaluated true at least once" + newLine;
+    table += "  - LC: covered lines" + newLine;
+    table += "  - B: total conditions" + newLine;
+    table += "  - EL: total executable lines" + newLine;
+    table += "```" + newLine;
   }
 
   return table;
@@ -565,26 +563,32 @@ export const coverage = async (initialOpts = {}) => {
   const table = buildTable(relevantFiles, opts);
   const summary = buildSummary(combinedMetrics, opts);
 
-  // Add debug info for combined metrics if enabled
-  let debugInfo = "";
+  // Add combined metrics debug info if enabled
+  let combinedDebugInfo = "";
   if (opts.debugSonar) {
     const percentages = getMetricPercentages(combinedMetrics);
     const sonarMetrics = percentages._sonarMetrics;
 
-    debugInfo = [
-      "### Combined Coverage Calculation",
+    combinedDebugInfo = [
+      "### Combined Coverage Metrics",
       "```",
-      `Combined SonarQube Coverage: ${sonarMetrics.coverage_pct}`,
+      `Overall Metrics:`,
+      `- Lines: ${combinedMetrics.lines}, Covered Lines: ${combinedMetrics.coveredlines}`,
+      `- Conditions: ${
+        combinedMetrics.conditionals || 0
+      }, Covered Conditions: ${combinedMetrics.coveredconditionals || 0}`,
       "",
-      "Formula Components:",
-      `- CT (Covered Conditions): ${sonarMetrics.CT}`,
-      `- B (Total Conditions): ${sonarMetrics.B}`,
-      `- LC (Covered Lines): ${sonarMetrics.LC}`,
-      `- EL (Executable Lines): ${sonarMetrics.EL}`,
+      `Combined Coverages:`,
+      `- Line Coverage: ${sonarMetrics.line_coverage_pct}`,
+      `- Branch Coverage: ${sonarMetrics.branch_coverage_pct}`,
+      `- Old SonarQube Formula: ${sonarMetrics.original_coverage_pct}`,
+      `- New Weighted Formula: ${sonarMetrics.coverage_pct}`,
       "",
-      "Calculation Details:",
-      `- Original Formula (CT+LC)/(B+EL): (${sonarMetrics.CT} + ${sonarMetrics.LC}) / (${sonarMetrics.B} + ${sonarMetrics.EL}) = ${sonarMetrics.original_coverage_pct}`,
-      `- Weighted Formula (0.8*Line + 0.2*Branch): (${sonarMetrics.line_coverage} * 0.8) + (${sonarMetrics.branch_coverage} * 0.2) = ${sonarMetrics.coverage_pct}`,
+      `Raw Formulas:`,
+      `- Line Coverage = ${sonarMetrics.LC}/${sonarMetrics.EL} = ${sonarMetrics.line_coverage}`,
+      `- Branch Coverage = ${sonarMetrics.CT}/${sonarMetrics.B} = ${sonarMetrics.branch_coverage}`,
+      `- Old Formula: (${sonarMetrics.CT}+${sonarMetrics.LC})/(${sonarMetrics.B}+${sonarMetrics.EL}) = ${sonarMetrics.original_coverage_raw}`,
+      `- New Formula: (${sonarMetrics.line_coverage}×0.8)+(${sonarMetrics.branch_coverage}×0.2) = ${sonarMetrics.coverage_raw}`,
       "```",
     ].join(newLine);
   }
@@ -594,7 +598,7 @@ export const coverage = async (initialOpts = {}) => {
     opts.note ? `> ${opts.note}` : "",
     summary,
     table,
-    opts.debugSonar ? debugInfo : "",
+    opts.debugSonar ? combinedDebugInfo : "",
   ]
     .filter(Boolean)
     .join(newLine + newLine);
