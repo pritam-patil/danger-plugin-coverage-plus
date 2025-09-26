@@ -1,6 +1,6 @@
 {
   "name": "danger-plugin-coverage-plus",
-  "version": "4.0.2",
+  "version": "4.0.3",
   "description": "A Danger plugin to report code coverage plus additional configurations",
   "main": "dist/index.js",
   "scripts": {
