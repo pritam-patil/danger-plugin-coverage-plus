@@ -4524,6 +4524,11 @@ parse-json@^5.2.0:
     json-parse-even-better-errors "^2.3.0"
     lines-and-columns "^1.1.6"
 
+parse-lcov@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/parse-lcov/-/parse-lcov-1.0.4.tgz#a9450bd3f45776b5549040be452b0bc36df24606"
+  integrity sha512-jE72M66VFyZJ0KYKnmaV70U/Y6FZyPoBCtJ6we5rDIVpWFR/GEkdCSLJn/R3UHJWZ3e3Qf3jAm2AUrmkaso+wA==
+
 path-exists@^4.0.0:
   version "4.0.0"
   resolved "https://registry.yarnpkg.com/path-exists/-/path-exists-4.0.0.tgz#513bdbe2d3b95d7762e8c1137efa195c6c61b5b3"
