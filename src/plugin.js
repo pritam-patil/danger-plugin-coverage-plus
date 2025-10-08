@@ -1,9 +1,15 @@
+import fs from "fs";
 import path from "path";
-
 import { getCoverageReport } from "./report";
+import {
+  parseLcov,
+  calculateSonarMetrics,
+  generateMarkdownReport,
+  lcovToMarkdown,
+} from "./lcov-parser";
 
 const newLine = "\n";
-console.log("Test 1253");
+
 /**
  * Get flatened file details.
  */
@@ -540,6 +546,20 @@ export const coverage = async (initialOpts = {}) => {
     },
     ...initialOpts,
   };
+
+  if (ops.reporter !== "jest") {
+    warn("lcov info found at path: " + ops.filePath);
+
+    if (!fs.existsSync(ops.filePath)) {
+      warn("no lcov info found at path: " + ops.filePath);
+      return null;
+    }
+
+    const data = await fs.readFileAsync(ops.filePath);
+    const report = lcovToMarkdown(data, opts);
+    markdown(report);
+    return 0;
+  }
 
   const coverageXml = await getCoverageReport(opts.cloverReportPath);
 
