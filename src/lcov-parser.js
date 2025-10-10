@@ -30,10 +30,6 @@ export const getSonarCoverage = (opts) => {
       const CT = branches.hit;
       const B = branches.found;
       const coverage = ((LC + CT) / (EL + B)) * 100;
-      // TODO - remove this after testing
-      console.log('>> File and its coverage', file, coverage);
-      console.log('\n');
-
       coverageMap[file] = Math.round(coverage);
     });
 
