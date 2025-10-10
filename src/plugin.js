@@ -1,6 +1,7 @@
 import path from 'path';
 
 import { getCoverageReport } from './report';
+import { getSonarCoverage } from './lcov-parser';
 
 const newLine = '\n';
 
@@ -155,7 +156,8 @@ const buildRow = (file, {
   altFileUrl,
   altFileUrlSuffix, // add this suffix to the file path
   replaceFilePrefix, // replace the filePath with this prefix
-}) => {
+  showSonarCoverage,
+}, sonarCoverage) => {
   const fileMetrics = getFileMetrics(file);
 
   const { sha } = danger.git?.commits?.[danger.git.commits.length - 1] || {};
@@ -190,7 +192,20 @@ const buildRow = (file, {
   if (fileMetrics.uncoveredLines.length > maxUncovered) {
     uncoveredCell += '...';
   }
-
+  if (showSonarCoverage) {
+    return [
+      '',
+      fileCell,
+      sonarCoverage[shortPath] || '-',
+      noLines ? '-' : percentages.statements,
+      noLines ? '-' : percentages.branches,
+      noLines ? '-' : percentages.functions,
+      noLines ? '-' : percentages.lines,
+      uncoveredCell,
+      emoji,
+      '',
+    ].join('|');
+  }
   return [
     '',
     fileCell,
@@ -212,21 +227,23 @@ const joinRow = (items) => `|${items.map((item) => item).join('|')}|`;
 /**
  * Build the coverage table.
  */
-const buildTable = (files, opts) => {
+const buildTable = (files, opts, sonarCoverage) => {
   const {
     maxRows,
     showAllFiles,
+    showSonarCoverage,
   } = opts;
 
   const headings = [
     `${showAllFiles ? '' : 'Impacted '}Files`,
+    showSonarCoverage ? 'Sonar Coverage' : '',
     '% Stmts',
     '% Branch',
     '% Funcs',
     '% Lines',
     'Uncovered Lines',
-    '',
-  ];
+    ' ',
+  ].filter(Boolean);
 
   const headingRow = joinRow(headings);
   const seperator = joinRow(
@@ -236,7 +253,7 @@ const buildTable = (files, opts) => {
     ], []),
   );
 
-  const allFileRows = files.map((file) => buildRow(file, opts));
+  const allFileRows = files.map((file) => buildRow(file, opts, sonarCoverage));
   const mainFileRows = allFileRows.slice(0, maxRows);
   const extraFileRows = allFileRows.slice(maxRows);
 
@@ -358,12 +375,14 @@ export const coverage = async (initialOpts = {}) => {
     failureMessage: 'Test coverage is looking a little low for the files created '
       + 'or modified in this PR, perhaps we need to improve this.',
     cloverReportPath: null,
+    sonarCoveragePath: null, // path to the sonarqube coverage file
     maxRows: 3,
     maxChars: 100,
     maxUncovered: 10,
     wrapFilenames: true,
     showAllFiles: false,
     warnOnNoReport: true,
+    showSonarCoverage: false, // show the sonarqube coverage for a file
     threshold: {
       statements: 80,
       branches: 80,
@@ -372,6 +391,8 @@ export const coverage = async (initialOpts = {}) => {
     },
     ...initialOpts,
   };
+
+  const sonarCoverage = await getSonarCoverage(opts);
 
   const coverageXml = await getCoverageReport(opts.cloverReportPath);
 
@@ -390,7 +411,7 @@ export const coverage = async (initialOpts = {}) => {
   }
 
   const combinedMetrics = getCombinedMetrics(relevantFiles);
-  const table = buildTable(relevantFiles, opts);
+  const table = buildTable(relevantFiles, opts, sonarCoverage);
   const summary = buildSummary(combinedMetrics, opts);
   const report = [
     `## ${opts.title}`,
